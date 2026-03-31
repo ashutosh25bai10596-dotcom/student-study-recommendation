@@ -1,0 +1,64 @@
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+
+hours = np.random.randint(1, 10, 200)
+current_score = np.random.randint(40, 80, 200)
+target_score = np.random.randint(60, 100, 200)
+
+
+success = (hours * 5 + current_score >= target_score).astype(int)
+
+df = pd.DataFrame({
+    'hours': hours,
+    'current_score': current_score,
+    'target_score': target_score,
+    'success': success
+})
+
+print(df.head())
+
+
+from sklearn.model_selection import train_test_split
+
+X = df[['hours', 'current_score', 'target_score']]
+y = df['success']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=1
+)
+
+
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+
+print("Accuracy:", model.score(X_test, y_test))
+
+
+def study_advisor(hours, current_score, target_score):
+
+    input_data = pd.DataFrame({
+        'hours':[hours],
+        'current_score':[current_score],
+        'target_score':[target_score]
+    })
+
+    prob = model.predict_proba(input_data)[0][1]
+
+    print("\nSuccess Probability:", round(prob*100,2), "%")
+
+    if prob > 0.7:
+        print(" You are on track! Keep going.")
+    elif prob > 0.4:
+        print(" You need to increase study hours slightly.")
+    else:
+        print(" High risk! Increase study hours significantly.")
+
+hours = int(input("Total time you study: "))
+current_score = int(input("What is your current score: "))
+target_score = int(input("What is your target score: "))
+study_advisor(hours, current_score, target_score)
